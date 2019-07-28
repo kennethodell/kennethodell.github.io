@@ -2,9 +2,80 @@
 <html>
   <head>
     <title>How Happy Are We?</title>
+	<script src="https://d3js.org/d3.v5.min.js" charset="utf-8"></script>
+	<style type="text/css">
+body {
+	color : gray;
+}
+
+#header {
+	margin: auto;
+	width: 50%;
+}
+
+#header-title {
+	color: green;
+}
+	</style>
+	<script id="vis.data" type="text/json">
+	
+	</script>
+	
   </head>
-  <body>
-	<h1>How Happy Are We?</h1>
-	<p>Beats me!</p>
+  <body onload='init()'>
+	<div id="header">
+	  <h1 id="header-title">How Happy Are We?</h1>
+	</div>
+	<div id="control">
+	  <button id="prev" name="prev" type="button">Previous</button>
+	  <button id="next" name="next" type="button">Next</button>
+	</div>
+	<div id="canvas">
+		<svg width=800 height=600>
+		</svg>
+	</div>
+	
+	<script>
+async function init() {
+
+var dataSrc = 'https://flunky.github.io/cars2017.csv';
+var margin = 50;
+var region=200
+var startRadius = 2;
+var ticks = [10, 20, 50, 100];
+var tFormat = "~s";
+
+// ----------------------------------------------------------------------------
+
+var data = await d3.csv(dataSrc);
+
+var xscale = d3.scaleLog().domain([10,150]).range([0,region]);
+var yscale = d3.scaleLog().domain([10,150]).range([region,0]);
+
+d3.select("svg")
+  .append("g")
+  .attr("transform", "translate("+margin+","+margin+")")
+  .selectAll("circle")
+  .data(data)
+  .enter()
+  .append("circle")
+  .attr("cx", function(d,i) { return xscale(d.AverageCityMPG); })
+  .attr("cy", function(d,i) { return yscale(d.AverageHighwayMPG); })
+  .attr("r", function(d,i) { return startRadius + parseInt(d.EngineCylinders); })
+  ;
+  
+d3.select("svg")
+  .append("g")
+  .attr("transform", "translate("+margin+","+margin+")")
+  .call(d3.axisLeft(yscale).tickValues(ticks).tickFormat(d3.format(tFormat)));
+
+d3.select("svg")
+  .append("g")
+  .attr("transform", "translate("+margin+","+(region+margin)+")")
+  .call(d3.axisBottom(xscale).tickValues(ticks).tickFormat(d3.format(tFormat)));
+
+}
+</script>
+
   </body>
 </html>
