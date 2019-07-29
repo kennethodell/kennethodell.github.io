@@ -1,7 +1,7 @@
 [
 	{
 		"country":"United States",
-		"variables" [
+		"variables" : [
 			{
 				"year": 2006,
 				"lifeLadder": 7.18179369,
@@ -80,5 +80,6 @@
 				"logGDPPerCapita": 10.92246532,
 				"socialSupport": 0.903856039
 			}
+		]
 	}
 ]
