@@ -1,0 +1,84 @@
+[
+	{
+		"country":"United States",
+		"variables" [
+			{
+				"year": 2006,
+				"lifeLadder": 7.18179369,
+				"logGDPPerCapita": 10.83168602,
+				"socialSupport": 0.964571774
+			},
+			{
+				"year": 2007,
+				"lifeLadder": 7.512687683,
+				"logGDPPerCapita": 10.83980465,
+				"socialSupport": 0.9585795105
+			},
+			{
+				"year": 2008,
+				"lifeLadder": 7.280385971,
+				"logGDPPerCapita": 10.82742596,
+				"socialSupport": 0.952587247
+			},
+			{
+				"year": 2009,
+				"lifeLadder": 7.158032417,
+				"logGDPPerCapita": 10.79051113,
+				"socialSupport": 0.911793768
+			},
+			{
+				"year": 2010,
+				"lifeLadder": 7.16361618,
+				"logGDPPerCapita": 10.80718327,
+				"socialSupport": 0.926158726
+			},
+			{
+				"year": 2011,
+				"lifeLadder": 7.115138531,
+				"logGDPPerCapita": 10.81564426,
+				"socialSupport": 0.921705008
+			},
+			{
+				"year": 2012,
+				"lifeLadder": 7.026226997,
+				"logGDPPerCapita": 10.83013153,
+				"socialSupport": 0.903192282
+			},
+			{
+				"year": 2013,
+				"lifeLadder": 7.249285221,
+				"logGDPPerCapita": 10.83965302,
+				"socialSupport": 0.92539686
+			},
+			{
+				"year": 2014,
+				"lifeLadder": 7.151114464,
+				"logGDPPerCapita": 10.85749722,
+				"socialSupport": 0.902097046
+			},
+			{
+				"year": 2015,
+				"lifeLadder": 6.863946915,
+				"logGDPPerCapita": 10.8781538,
+				"socialSupport": 0.903571069
+			},
+			{
+				"year": 2016,
+				"lifeLadder": 6.803599834,
+				"logGDPPerCapita": 10.88555431,
+				"socialSupport": 0.896751285
+			},
+			{
+				"year": 2017,
+				"lifeLadder": 6.9917593,	
+				"logGDPPerCapita": 10.90090561,
+				"socialSupport": 0.921002865
+			},
+			{
+				"year": 2018,
+				"lifeLadder": 6.882684708,
+				"logGDPPerCapita": 10.92246532,
+				"socialSupport": 0.903856039
+			}
+	}
+]
