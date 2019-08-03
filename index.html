@@ -16,8 +16,12 @@ body {
 #header-title {
 	color: green;
 }
+
+circle {fill: lightblue; stroke: black;}
 	</style>
+
 	<script id="vis.data" type="text/json">
+
 	
 	</script>
 	
@@ -27,8 +31,8 @@ body {
 	  <h1 id="header-title">How Happy Are We?</h1>
 	</div>
 	<div id="control">
-	  <button id="prev" name="prev" type="button">Previous</button>
-	  <button id="next" name="next" type="button">Next</button>
+	  <button id="prev" name="prev" type="button" onclick="previousClick()">Previous</button>
+	  <button id="next" name="next" type="button" onclick="nextClick()">Next</button>
 	</div>
 	<div id="canvas">
 		<svg width=800 height=600>
@@ -36,46 +40,260 @@ body {
 	</div>
 	
 	<script>
+	
+const MAX_YEAR = 2018;
+const MIN_YEAR = 2008;
+
+var chartParams = {
+	"currentYear": MIN_YEAR,
+	"countries": [
+		"United States"
+	]
+};
+
+var happinessData = [
+	{
+		"country":"United States",
+		"variables" : [
+			{
+				"year": 2006,
+				"lifeLadder": 7.18179369,
+				"logGDPPerCapita": 10.83168602,
+				"socialSupport": 0.964571774
+			},
+			{
+				"year": 2007,
+				"lifeLadder": 7.512687683,
+				"logGDPPerCapita": 10.83980465,
+				"socialSupport": 0.9585795105
+			},
+			{
+				"year": 2008,
+				"lifeLadder": 7.280385971,
+				"logGDPPerCapita": 10.82742596,
+				"socialSupport": 0.952587247
+			},
+			{
+				"year": 2009,
+				"lifeLadder": 7.158032417,
+				"logGDPPerCapita": 10.79051113,
+				"socialSupport": 0.911793768
+			},
+			{
+				"year": 2010,
+				"lifeLadder": 7.16361618,
+				"logGDPPerCapita": 10.80718327,
+				"socialSupport": 0.926158726
+			},
+			{
+				"year": 2011,
+				"lifeLadder": 7.115138531,
+				"logGDPPerCapita": 10.81564426,
+				"socialSupport": 0.921705008
+			},
+			{
+				"year": 2012,
+				"lifeLadder": 7.026226997,
+				"logGDPPerCapita": 10.83013153,
+				"socialSupport": 0.903192282
+			},
+			{
+				"year": 2013,
+				"lifeLadder": 7.249285221,
+				"logGDPPerCapita": 10.83965302,
+				"socialSupport": 0.92539686
+			},
+			{
+				"year": 2014,
+				"lifeLadder": 7.151114464,
+				"logGDPPerCapita": 10.85749722,
+				"socialSupport": 0.902097046
+			},
+			{
+				"year": 2015,
+				"lifeLadder": 6.863946915,
+				"logGDPPerCapita": 10.8781538,
+				"socialSupport": 0.903571069
+			},
+			{
+				"year": 2016,
+				"lifeLadder": 6.803599834,
+				"logGDPPerCapita": 10.88555431,
+				"socialSupport": 0.896751285
+			},
+			{
+				"year": 2017,
+				"lifeLadder": 6.9917593,	
+				"logGDPPerCapita": 10.90090561,
+				"socialSupport": 0.921002865
+			},
+			{
+				"year": 2018,
+				"lifeLadder": 6.882684708,
+				"logGDPPerCapita": 10.92246532,
+				"socialSupport": 0.903856039
+			}
+		]
+	}
+];
+
+var usData = [
+			{
+				"year": 2006,
+				"lifeLadder": 7.18179369,
+				"logGDPPerCapita": 10.83168602,
+				"socialSupport": 0.964571774
+			},
+			{
+				"year": 2007,
+				"lifeLadder": 7.512687683,
+				"logGDPPerCapita": 10.83980465,
+				"socialSupport": 0.9585795105
+			},
+			{
+				"year": 2008,
+				"lifeLadder": 7.280385971,
+				"logGDPPerCapita": 10.82742596,
+				"socialSupport": 0.952587247
+			},
+			{
+				"year": 2009,
+				"lifeLadder": 7.158032417,
+				"logGDPPerCapita": 10.79051113,
+				"socialSupport": 0.911793768
+			},
+			{
+				"year": 2010,
+				"lifeLadder": 7.16361618,
+				"logGDPPerCapita": 10.80718327,
+				"socialSupport": 0.926158726
+			},
+			{
+				"year": 2011,
+				"lifeLadder": 7.115138531,
+				"logGDPPerCapita": 10.81564426,
+				"socialSupport": 0.921705008
+			},
+			{
+				"year": 2012,
+				"lifeLadder": 7.026226997,
+				"logGDPPerCapita": 10.83013153,
+				"socialSupport": 0.903192282
+			},
+			{
+				"year": 2013,
+				"lifeLadder": 7.249285221,
+				"logGDPPerCapita": 10.83965302,
+				"socialSupport": 0.92539686
+			},
+			{
+				"year": 2014,
+				"lifeLadder": 7.151114464,
+				"logGDPPerCapita": 10.85749722,
+				"socialSupport": 0.902097046
+			},
+			{
+				"year": 2015,
+				"lifeLadder": 6.863946915,
+				"logGDPPerCapita": 10.8781538,
+				"socialSupport": 0.903571069
+			},
+			{
+				"year": 2016,
+				"lifeLadder": 6.803599834,
+				"logGDPPerCapita": 10.88555431,
+				"socialSupport": 0.896751285
+			},
+			{
+				"year": 2017,
+				"lifeLadder": 6.9917593,	
+				"logGDPPerCapita": 10.90090561,
+				"socialSupport": 0.921002865
+			},
+			{
+				"year": 2018,
+				"lifeLadder": 6.882684708,
+				"logGDPPerCapita": 10.92246532,
+				"socialSupport": 0.903856039
+			}
+		];
+		
+function redraw() {
+	console.log("redraw() called...");
+}
+
+
+function previousClick() {
+
+	if (chartParams.currentYear > MIN_YEAR) {
+		chartParams.currentYear -= 1;
+		console.log("Current year: " + chartParams.currentYear);
+		
+		redraw();
+	}
+}
+
+function nextClick() {
+
+	if (chartParams.currentYear < MAX_YEAR) {
+		chartParams.currentYear += 1;
+		console.log("Current year: " + chartParams.currentYear);
+		
+		redraw();
+	}
+}
+
 async function init() {
 
-var dataSrc = 'https://flunky.github.io/cars2017.csv';
+		
+//var dataSrc = 'https://kennethodell.github.io/data.json';
+var dataSrc = 'Chapter2OnlineData.csv'
 var margin = 50;
-var region=200
+var width=800;
+var height=600;
 var startRadius = 2;
-var ticks = [10, 20, 50, 100];
+var xticks = [2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018];
+var yticks = [6, 7, 8];
 var tFormat = "~s";
 
 // ----------------------------------------------------------------------------
 
 var data = await d3.csv(dataSrc);
 
-var xscale = d3.scaleLog().domain([10,150]).range([0,region]);
-var yscale = d3.scaleLog().domain([10,150]).range([region,0]);
+var xscale = ed3.scaleLinear().domain([2006,2018]).range([0,width]);
+var yscale = d3.scaleLinear().domain([6,8]).range([height,0]);
+
+console.log(usData)
 
 d3.select("svg")
   .append("g")
   .attr("transform", "translate("+margin+","+margin+")")
   .selectAll("circle")
-  .data(data)
+  .data(usData)
   .enter()
   .append("circle")
-  .attr("cx", function(d,i) { return xscale(d.AverageCityMPG); })
-  .attr("cy", function(d,i) { return yscale(d.AverageHighwayMPG); })
-  .attr("r", function(d,i) { return startRadius + parseInt(d.EngineCylinders); })
+  .attr("cx", function(d,i) { return xscale(d.year); })
+  .attr("cy", function(d,i) { console.log(d); return yscale(d.LifeLadder); })
+  .attr("r", function(d,i) { return d.logGDPPerCapita; })
   ;
   
 d3.select("svg")
   .append("g")
   .attr("transform", "translate("+margin+","+margin+")")
-  .call(d3.axisLeft(yscale).tickValues(ticks).tickFormat(d3.format(tFormat)));
+  .call(d3.axisLeft(yscale).tickValues(yticks).tickFormat(d3.format(tFormat)));
 
 d3.select("svg")
   .append("g")
-  .attr("transform", "translate("+margin+","+(region+margin)+")")
-  .call(d3.axisBottom(xscale).tickValues(ticks).tickFormat(d3.format(tFormat)));
+  .attr("transform", "translate("+margin+","+(height + margin)+")")
+  .call(d3.axisBottom(xscale).tickValues(xticks));
 
 }
 </script>
 
+	<footer>
+		<p>Posted by: Ken O'Dell</p>
+		<p>Sources:</p>
+		<p><a href="https://worldhappiness.report/ed/2019/">World Happiness Report 2019</a>.</p>
+	</footer>
   </body>
 </html>
