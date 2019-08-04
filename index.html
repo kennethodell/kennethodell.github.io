@@ -18,12 +18,56 @@ body {
 	color: gray;
 }
 
-circle {fill: lightblue; stroke: black;}
+#control-countries {
+    text-align: center;
+}
+
+circle { stroke: black; }
+
+path { stroke: black; }
 
 .line {
 	fill: none;
 	stroke: steelblue;
 	stroke-width: 1.5px;
+}
+
+ul li::before {
+    content: "\2022";  /* Add content: \2022 is the CSS Code/unicode for a bullet */
+    /* color: blue;   Change the color */
+    font-weight: bold; /* If you want it to be bold */
+    display: inline-block; /* Needed to add space between the bullet and the text */
+    width: 1em; /* Also needed for space (tweak if needed) */
+    margin-left: -1em; /* Also needed for space (tweak if needed) */
+}
+
+#legend-title {
+    margin: 1px;
+}
+
+.legend-item {
+    margin: 1px 0px 1px 20px;
+}
+
+#legend-0 {
+    color: blue;
+}
+
+#legend-1 {
+    color: red;
+}
+
+div.tooltip {
+    color: white;
+    position: absolute;
+    text-align: center;
+    width: 60px;
+    height: 28px;
+    padding: 2px;
+    font: 12px sans-serif;
+    background: rgba(0,0,0,.8);
+    border: 2px solid black;
+    pointer-events: none;
 }
 	</style>
 
@@ -41,9 +85,24 @@ circle {fill: lightblue; stroke: black;}
 		</p>
 	</div>
 	<div id="control">
-	  <button id="prev" name="prev" type="button" onclick="previousClick()">Previous</button>
-	  <button id="next" name="next" type="button" onclick="nextClick()">Next</button>
+        <p id="control-btns">
+            <button id="prev" name="prev" type="button" onclick="previousClick()">Previous</button>
+            <button id="next" name="next" type="button" onclick="nextClick()">Next</button>
+        </p>
+        <p id="control-countries">
+            <input type="radio" name="otherCountry" value="Canada" onclick="setCountry(this)" checked="checked">Canada
+            <input type="radio" name="otherCountry" value="France" onclick="setCountry(this)">France
+            <input type="radio" name="otherCountry" value="Germany" onclick="setCountry(this)">Germany
+            <input type="radio" name="otherCountry" value="Italy" onclick="setCountry(this)">Italy
+            <input type="radio" name="otherCountry" value="Japan" onclick="setCountry(this)">Japan
+            <input type="radio" name="otherCountry" value="United Kingdom" onclick="setCountry(this)">United Kingdom
+        </p>
 	</div>
+    <div id="legend">
+        <p id="legend-title">Countries:</p>
+        <p id="legend-0" class="legend-item">United States</p>
+        <p id="legend-1" class="legend-item">Canada</p>
+    </div>
 	<div id="canvas">
 		<svg>
 		</svg>
@@ -61,79 +120,142 @@ var width= window.innerWidth - margin.left - margin.right;
 var height=600;
 
 var xscale = d3.scaleLinear().domain([MIN_YEAR,MAX_YEAR]).range([0, width]);
-var yscale = d3.scaleLinear().domain([0,10]).range([height, 0]);
+var yscale = d3.scaleLinear().domain([5,8]).range([height, 0]);
 var rscale = d3.scaleLinear().domain([0,12]).range([0, 10]);
 
 var chartParams = {
 	"minYear": MIN_YEAR,
 	"maxYear": MAX_YEAR,
 
+    // Filters
 	"currentYear": null,
+    "country" : "Canada",
 
 	"allData": null,
 
 	"svg": null,
+    "chartGroup":null,
+    "pointGroup0":null,
+    "lineGroup0":null,
+    "pointGroup1":null,
+    "lineGroup1":null,
 
-	"line": null,
+    "voronoi":null,
 
-	"countries": [
-		"United States"
-	],
+	"line0": null,
+    "line1": null,
 
-	// https://stackoverflow.com/questions/10615290/select-data-from-a-csv-before-loading-it-with-javascript-d3-library
-	"filters": {
-		'year': [2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018],
-		'country': ['United States']
-	}
+    "tooltip":null,
+
+	"colors": {
+        "United States":"blue", "Canada":"red", "France":"gray", "Germany":"orange", "Italy":"green", "Japan":"pink", "United Kingdom":"brown"
+    },
+
+    "antHigh": {
+	    "dx": 50,
+        "dy": -50
+    },
+    "antLow": {
+        "dx": 50,
+        "dy": 50
+    }
+
 };
 
 function redraw(dataSet) {
-	//console.log("redraw() called...");
-	//console.log("Data: " + dataSet);
 
 	var t = d3.transition().duration(500);
 
-	var points = chartParams.svg.selectAll("circle").data(dataSet);
-	var paths = chartParams.svg.selectAll("path").data(dataSet);
+	for (i = 0; i < dataSet.length; i++) {
 
-	points.exit()
-			.transition(t)
-			.attr("r", 0)
-			.remove()
-			;
+	    var pointGroup = chartParams["pointGroup" + i];
+	    //var lineGroup = chartParams["lineGroup" + i];
+	    var set = dataSet[i];
 
-	// paths.exit()
-	// 		.transition(t)
-	// 		.attr("d", 0)
-	// 		.remove()
-	// 		;
+        //d3.select("#legend-1 before").style("color", chartParams.colors[set[0].country]);
+        //d3.select("#legend-1").html(set[0].country);
 
-	points.enter()
-			.append("circle")
-			.attr("class", "point")
-			.attr("cx", function(d,i) { var x = xscale(d.year); console.log("Year=" + d.year + " cx=" + x); return x; })
-			.attr("cy", function(d,i) { var y = yscale(d.happiness); console.log("LifeLadder=" + d.happiness + " cy=" + y); return y; })
-			.transition(t)
-			.attr("r", function(d,i) { var r = rscale(d.gdp); console.log("GDP=" + d.gdp + " r=" + r); return r; })
-			;
+        var points = pointGroup.selectAll(".point").data(set);
+        //var paths = lineGroup.select(".line").data(set);
 
-	// paths.enter()
-	// 		.append("path")
-	// 		.attr("class", "line")
-	// 		.attr("d", chartParams.line)
-	// 		;
+        points.exit()
+            .transition(t)
+            .attr("r", 0)
+            .remove()
+        ;
 
+        points.enter()
+            .append("circle")
+            .attr("class", "point")
+            .attr("cx", function (d, i) {
+                var x = xscale(d.year);
+                console.log("Year=" + d.year + " cx=" + x);
+                return x;
+            })
+            .attr("cy", function (d, i) {
+                var y = yscale(d.happiness);
+                console.log("LifeLadder=" + d.happiness + " cy=" + y);
+                return y;
+            })
+            .style("fill", function (d) {
+                return chartParams.colors[d.country];
+            })
+            .on('mouseover', function (d) {
+                chartParams.tooltip.transition()
+                    .duration(500)
+                    .style("opacity", 0.9);
+                console.log("Showing tooltip...");
+                chartParams.tooltip.html("<p>Hi</p>")
+                    .style('left', d3.event.pageX + 'px')
+                    .style('top', d3.event.pageY - 28 + 'px');
+            })
+            .on('mouseout', function () {
+                console.log("Hiding tooltip...");
+                chartParams.tooltip.transition()
+                    .duration(500)
+                    .style("opacity", 0);
+            })
+            .transition(t)
+            .attr("r", function (d, i) {
+                var r = rscale(d.gdp);
+                console.log("GDP=" + d.gdp + " r=" + r);
+                return r;
+            })
+        ;
+
+        chartParams.voronoiGroup.data(chartParams.voronoi.polygons([set]))
+            .enter()
+            .append("path")
+                .attr("d", d => d ? 'M' + d.join('L') + 'Z' : null)
+                .on("mouseover", (d) => {
+                    console.log("mouseover: ");
+                })
+                .on("mouseout", (d) => {
+                    console.log("mouseout: ");
+                })
+
+
+    }
 }
 
 function previousClick() {
 
-	if (chartParams.currentYear > MIN_YEAR) {
+    var updated = false;
+    if (chartParams.currentYear == MIN_YEAR) {
+        chartParams.currentYear = null;
+        updated = true;
+    }
+	else if (chartParams.currentYear > MIN_YEAR) {
 		chartParams.currentYear -= 1;
-		console.log("Current year: " + chartParams.currentYear);
-
-		dataSet = filterData(chartParams.allData, chartParams);
-		redraw(dataSet);
+		updated = true;
 	}
+
+	if (updated) {
+        console.log("Current year: " + chartParams.currentYear);
+        data0 = filterData(chartParams.allData, "United States", chartParams.currentYear);
+        data1 = filterData(chartParams.allData, chartParams.country, chartParams.currentYear);
+        redraw([data0, data1]);
+    }
 }
 
 function nextClick() {
@@ -150,15 +272,30 @@ function nextClick() {
 
 	if (updated) {
 		console.log("Current year: " + chartParams.currentYear);
-		dataSet = filterData(chartParams.allData, chartParams);
-		redraw(dataSet)
+        data0 = filterData(chartParams.allData, "United States", chartParams.currentYear);
+        data1 = filterData(chartParams.allData, chartParams.country, chartParams.currentYear);
+        redraw([data0, data1]);
 	}
 }
 
-function filterData(data, filters) {
+function setCountry(radio) {
+    console.log("Changing 'other' country to " + radio.value);
+
+    chartParams.pointGroup0.selectAll("*").attr("fill-opacity", 1).transition().duration(250).attr("fill-opacity", 0).remove();
+    chartParams.pointGroup1.selectAll("*").attr("fill-opacity", 1).transition().duration(250).attr("fill-opacity", 0).remove();
+    chartParams.currentYear = null;
+
+    d3.select("#legend-1")
+        .style("color", chartParams.colors[radio.value])
+        .html(radio.value);
+
+    chartParams.country = radio.value;
+}
+
+function filterData(data, country, year) {
 
 	var filteredData = data.filter(function (entry) {
-		return entry.country === 'United States' && entry.year >= MIN_YEAR && entry.year <= filters.currentYear;
+		return entry.country === country && entry.year >= MIN_YEAR && entry.year <= year;
 	});
 
 	return filteredData;
@@ -186,8 +323,6 @@ async function init() {
 		}
 	);
 
-	//var dataSet = filterData(chartParams.allData, chartParams);
-
 	var svg = d3.select("svg")
 			.attr("width", width + margin.left + margin.right)
 			.attr("height", height + margin.top + margin.bottom)
@@ -206,21 +341,37 @@ async function init() {
 			//.attr("transform", "translate(" + margin.top + "," + margin.top + ")")
 			.call(d3.axisLeft(yscale)); //.tickValues(yticks).tickFormat(d3.format(tFormat)));
 
-	chartParams.line = d3.line()
-			.curve(d3.curveBasis)
-			.x(function(d) { var x = xscale(d.year); console.log("Line: " + x); return x; })
-			.y(function(d) { var y = yscale(d.happiness); return y; });
+    chartParams.chartGroup = svg.append("g").attr("class", "chart-group");
 
-	/*
-	chartParams.svg.selectAll("circle")
-			.data(dataSet)
-			.enter()
-			.append("circle")
-			.attr("cx", function(d,i) { var x = xscale(d.year); console.log("Year=" + d.year + " cx=" + x); return x; })
-			.attr("cy", function(d,i) { var y = yscale(d.happiness); console.log("LifeLadder=" + d.happiness + " cy=" + y); return y; })
-			.attr("r", function(d,i) { var r = rscale(d.gdp); console.log("GDP=" + d.gdp + " r=" + r); return r; })
-			;
-	*/
+    chartParams.pointGroup0 = chartParams.chartGroup.append("g").attr("class", "point-group-0");
+    chartParams.lineGroup0 = chartParams.chartGroup.append("g").attr("class", "line-group-0");
+
+    chartParams.pointGroup1 = chartParams.chartGroup.append("g").attr("class", "point-group-1");
+    chartParams.lineGroup1 = chartParams.chartGroup.append("g").attr("class", "line-group-1");
+
+    chartParams.line0 = d3.line()
+        .x(function(d) { var x = xscale(d.year); console.log("Line X: " + x); return x; })
+        .y(function(d) { var y = yscale(d.happiness); console.log("Line Y: " + y); return y; })
+        ;
+
+    chartParams.line1 = d3.line()
+        .x(function(d) { var x = xscale(d.year); console.log("Line X: " + x); return x; })
+        .y(function(d) { var y = yscale(d.happiness); console.log("Line Y: " + y); return y; })
+    ;
+
+    chartParams.voronoi = d3.voronoi()
+        .x(function(d) { return xscale(d.year); })
+        .y(function(d) { return yscale(d.happiness); })
+        .extent([[-margin.left, -margin.top], [width + margin.right, height + margin.bottom]]);
+
+    chartParams.voronoiGroup = chartParams.chartGroup.append("g").attr("class", "voronoi");
+
+    chartParams.tooltip = d3.select("body")
+        .append("div")
+            .attr('class', 'tooltip')
+            .style("opacity", 0);
+
+    //chartParams.svg.call(chartParams.tooltip);
 }
 </script>
 
