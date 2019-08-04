@@ -16,6 +16,7 @@ body {
 
 #header-title {
 	color: gray;
+	margin: 10px 5px;
 }
 
 #control-countries {
@@ -26,19 +27,14 @@ circle { stroke: black; }
 
 path { stroke: black; }
 
+#narrative p {
+	margin: 4px 3px;
+}
+
 .line {
 	fill: none;
 	stroke: steelblue;
 	stroke-width: 1.5px;
-}
-
-ul li::before {
-    content: "\2022";  /* Add content: \2022 is the CSS Code/unicode for a bullet */
-    /* color: blue;   Change the color */
-    font-weight: bold; /* If you want it to be bold */
-    display: inline-block; /* Needed to add space between the bullet and the text */
-    width: 1em; /* Also needed for space (tweak if needed) */
-    margin-left: -1em; /* Also needed for space (tweak if needed) */
 }
 
 #legend-title {
@@ -61,13 +57,17 @@ div.tooltip {
     color: white;
     position: absolute;
     text-align: center;
-    width: 60px;
-    height: 28px;
+    width: 90px;
+    height: 45px;
     padding: 2px;
-    font: 12px sans-serif;
+    font: 10px sans-serif;
     background: rgba(0,0,0,.8);
     border: 2px solid black;
     pointer-events: none;
+}
+
+div.tooltip p {
+	margin: 1px;
 }
 	</style>
 
@@ -78,25 +78,36 @@ div.tooltip {
 	</div>
 	<div id="narrative">
 		<p>The <span class="cite"><a href="https://worldhappiness.report" target="_blank">World Happiness Report 2019</a></span> is a survey that ranks 156 countries by a subjective measure of happiness.
-			This data comes from the Gallup World Poll.  Based on this data, we want to know if the United States has been getting any happier during the last ten years?
+			This measure is called the, 'Life Ladder.' This data comes from the Gallup World Poll.  Based on this data, we want to know if the United States has been getting any happier during the last ten years?
+			Does a higher GDP help?
 		</p>
 		<p id="comment">
-			Press the 'Next' button to get started
+			Press the 'Next' button to get started.  Compare the United States to one of the other <a href="https://en.wikipedia.org/wiki/Group_of_Seven">G7</a> countries by selecting a radio button below.
+			Mouse over each of the data points to see the numeric Life Ladder and GDP values for the country.
 		</p>
 	</div>
 	<div id="control">
         <p id="control-btns">
             <button id="prev" name="prev" type="button" onclick="previousClick()">Previous</button>
             <button id="next" name="next" type="button" onclick="nextClick()">Next</button>
+			<span id="control-countries">
+			<input type="radio" name="otherCountry" value="Canada" onclick="setCountry(this)" checked="checked">Canada
+			<input type="radio" name="otherCountry" value="France" onclick="setCountry(this)">France
+			<input type="radio" name="otherCountry" value="Germany" onclick="setCountry(this)">Germany
+			<input type="radio" name="otherCountry" value="Italy" onclick="setCountry(this)">Italy
+			<input type="radio" name="otherCountry" value="Japan" onclick="setCountry(this)">Japan
+			<input type="radio" name="otherCountry" value="United Kingdom" onclick="setCountry(this)">United Kingdom
+			</span>
         </p>
-        <p id="control-countries">
+
+        <!-- p id="control-countries">
             <input type="radio" name="otherCountry" value="Canada" onclick="setCountry(this)" checked="checked">Canada
             <input type="radio" name="otherCountry" value="France" onclick="setCountry(this)">France
             <input type="radio" name="otherCountry" value="Germany" onclick="setCountry(this)">Germany
             <input type="radio" name="otherCountry" value="Italy" onclick="setCountry(this)">Italy
             <input type="radio" name="otherCountry" value="Japan" onclick="setCountry(this)">Japan
             <input type="radio" name="otherCountry" value="United Kingdom" onclick="setCountry(this)">United Kingdom
-        </p>
+        </p -->
 	</div>
     <div id="legend">
         <p id="legend-title">Countries:</p>
@@ -117,7 +128,7 @@ var dataSrc = 'https://kennethodell.github.io/Chapter2OnlineData.csv';
 
 var margin = { top:50, right:50, bottom:50, left:50};
 var width= window.innerWidth - margin.left - margin.right;
-var height=600;
+var height=550;
 
 var xscale = d3.scaleLinear().domain([MIN_YEAR,MAX_YEAR]).range([0, width]);
 var yscale = d3.scaleLinear().domain([5,8]).range([height, 0]);
@@ -201,13 +212,15 @@ function redraw(dataSet) {
                 return chartParams.colors[d.country];
             })
             .on('mouseover', function (d) {
+
+            	var dx = 10, dy = 30;
                 chartParams.tooltip.transition()
                     .duration(500)
                     .style("opacity", 0.9);
-                console.log("Showing tooltip...");
-                chartParams.tooltip.html("<p>Hi</p>")
-                    .style('left', d3.event.pageX + 'px')
-                    .style('top', d3.event.pageY - 28 + 'px');
+                //console.log("Showing tooltip...");
+                chartParams.tooltip.html("<p>" + d.country + "</p><p>Life ladder: " + d.happiness.toFixed(1) + "</p><p>GDP: " + d.gdp.toFixed(2) + "</p>")
+                    .style('left', d3.event.pageX + dx + 'px')
+                    .style('top', d3.event.pageY - dy + 'px');
             })
             .on('mouseout', function () {
                 console.log("Hiding tooltip...");
@@ -336,10 +349,25 @@ async function init() {
 			.attr("transform", "translate(0, " + (height) + ")")
 			.call(d3.axisBottom(xscale)); //.tickValues(xticks));
 
+	svg.append("text")
+			.attr("transform",
+					"translate(" + (width/2) + " ," +
+					(height + margin.top ) + ")")
+			.style("text-anchor", "middle")
+			.text("Year");
+
 	svg.append("g")
 			.attr("class", "y-axis")
 			//.attr("transform", "translate(" + margin.top + "," + margin.top + ")")
 			.call(d3.axisLeft(yscale)); //.tickValues(yticks).tickFormat(d3.format(tFormat)));
+
+	svg.append("text")
+			.attr("transform", "rotate(-90)")
+			.attr("y", 0 - margin.left)
+			.attr("x",0 - (height / 2))
+			.attr("dy", "1em")
+			.style("text-anchor", "middle")
+			.text("Life Ladder (Happiness)");
 
     chartParams.chartGroup = svg.append("g").attr("class", "chart-group");
 
@@ -370,8 +398,6 @@ async function init() {
         .append("div")
             .attr('class', 'tooltip')
             .style("opacity", 0);
-
-    //chartParams.svg.call(chartParams.tooltip);
 }
 </script>
 
