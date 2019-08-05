@@ -74,7 +74,7 @@ div.tooltip p {
   </head>
   <body onload='init()'>
 	<div id="header">
-	  <h1 id="header-title">How Happy Are We?</h1>
+	  <h1 id="header-title">Is the United States (And Other G7 Countries) Getting Any Happier?</h1>
 	</div>
 	<div id="narrative">
 		<p>The <span class="cite"><a href="https://worldhappiness.report" target="_blank">World Happiness Report 2019</a></span> is a survey that ranks 156 countries by a subjective measure of happiness.
@@ -88,8 +88,8 @@ div.tooltip p {
 	</div>
 	<div id="control">
         <p id="control-btns">
-            <button id="prev" name="prev" type="button" onclick="previousClick()">Previous</button>
-            <button id="next" name="next" type="button" onclick="nextClick()">Next</button>
+            <button id="prev" name="prev" type="button" onclick="previousButton()">Previous</button>
+            <button id="next" name="next" type="button" onclick="nextButton()">Next</button>
 			<span id="control-countries">
 			<input type="radio" name="otherCountry" value="Canada" onclick="setCountry(this)" checked="checked">Canada
 			<input type="radio" name="otherCountry" value="France" onclick="setCountry(this)">France
@@ -162,15 +162,10 @@ var chartParams = {
         "United States":"blue", "Canada":"red", "France":"gray", "Germany":"orange", "Italy":"green", "Japan":"pink", "United Kingdom":"brown"
     },
 
-    "antHigh": {
-	    "dx": 50,
-        "dy": -50
-    },
-    "antLow": {
-        "dx": 50,
-        "dy": 50
-    }
+ 	"points0":[],
+	"points1":[],
 
+    "interval":null
 };
 
 function redraw(dataSet) {
@@ -180,14 +175,9 @@ function redraw(dataSet) {
 	for (i = 0; i < dataSet.length; i++) {
 
 	    var pointGroup = chartParams["pointGroup" + i];
-	    //var lineGroup = chartParams["lineGroup" + i];
 	    var set = dataSet[i];
 
-        //d3.select("#legend-1 before").style("color", chartParams.colors[set[0].country]);
-        //d3.select("#legend-1").html(set[0].country);
-
         var points = pointGroup.selectAll(".point").data(set);
-        //var paths = lineGroup.select(".line").data(set);
 
         points.exit()
             .transition(t)
@@ -199,6 +189,8 @@ function redraw(dataSet) {
             .append("circle")
             .attr("class", "point")
             .attr("cx", function (d, i) {
+            	//chartParams["points" + i].push(d);
+
                 var x = xscale(d.year);
                 console.log("Year=" + d.year + " cx=" + x);
                 return x;
@@ -223,7 +215,7 @@ function redraw(dataSet) {
                     .style('top', d3.event.pageY - dy + 'px');
             })
             .on('mouseout', function () {
-                console.log("Hiding tooltip...");
+                //console.log("Hiding tooltip...");
                 chartParams.tooltip.transition()
                     .duration(500)
                     .style("opacity", 0);
@@ -251,7 +243,24 @@ function redraw(dataSet) {
     }
 }
 
-function previousClick() {
+function displayTooltip(data) {
+
+	var d = data;
+	var dx = 10, dy = 30;
+	chartParams.tooltip.transition()
+			.duration(500)
+			.style("opacity", 0.9);
+
+	chartParams.tooltip.html("<p>" + d.country + "</p><p>Life ladder: " + d.happiness.toFixed(1) + "</p><p>GDP: " + d.gdp.toFixed(2) + "</p>")
+			.style('left', d3.event.pageX + dx + 'px')
+			.style('top', d3.event.pageY - dy + 'px');
+
+	chartParams.tooltip.transition()
+			.duration(500)
+			.style("opacity", 0);
+}
+
+function previousYear() {
 
     var updated = false;
     if (chartParams.currentYear == MIN_YEAR) {
@@ -271,7 +280,7 @@ function previousClick() {
     }
 }
 
-function nextClick() {
+function nextYear() {
 
 	var updated = false;
 	if (chartParams.currentYear == null) {
@@ -288,7 +297,32 @@ function nextClick() {
         data0 = filterData(chartParams.allData, "United States", chartParams.currentYear);
         data1 = filterData(chartParams.allData, chartParams.country, chartParams.currentYear);
         redraw([data0, data1]);
+
+		if (chartParams.interval != null) {
+			displayTooltip(chartParams.points0.top());
+			displayTooltip(chartParams.points1.top());
+		}
 	}
+}
+
+function previousButton() {
+
+	if (chartParams.interval != null) {
+		clearInterval(chartParams.interval)
+		chartParams.interval = null;
+	}
+
+	previousYear();
+}
+
+function nextButton() {
+
+	if (chartParams.interval != null) {
+		clearInterval(chartParams.interval)
+		chartParams.interval = null;
+	}
+
+	nextYear();
 }
 
 function setCountry(radio) {
@@ -316,13 +350,6 @@ function filterData(data, country, year) {
 
 async function init() {
 
-	//var startRadius = 2;
-	//var xticks = [2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018];
-	//var yticks = [5, 6, 7, 8];
-	//var n = 11;
-
-	//var tFormat = "~s";
-
 	// ----------------------------------------------------------------------------
 
 	chartParams.allData = await d3.csv(dataSrc,
@@ -347,7 +374,7 @@ async function init() {
 	svg.append("g")
 			.attr("class", "x-axis")
 			.attr("transform", "translate(0, " + (height) + ")")
-			.call(d3.axisBottom(xscale)); //.tickValues(xticks));
+			.call(d3.axisBottom(xscale));
 
 	svg.append("text")
 			.attr("transform",
@@ -358,8 +385,7 @@ async function init() {
 
 	svg.append("g")
 			.attr("class", "y-axis")
-			//.attr("transform", "translate(" + margin.top + "," + margin.top + ")")
-			.call(d3.axisLeft(yscale)); //.tickValues(yticks).tickFormat(d3.format(tFormat)));
+			.call(d3.axisLeft(yscale));
 
 	svg.append("text")
 			.attr("transform", "rotate(-90)")
@@ -398,6 +424,8 @@ async function init() {
         .append("div")
             .attr('class', 'tooltip')
             .style("opacity", 0);
+
+    chartParams.interval = setInterval(nextYear, 2000);
 }
 </script>
 
